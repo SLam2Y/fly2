@@ -7,7 +7,7 @@ export function TopBar() {
   const { theme, toggle } = useTheme();
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-bg/80 backdrop-blur-lg">
+    <header className="sticky top-0 z-30 border-b border-border bg-bg/80 pt-[calc(var(--tg-safe-area-inset-top,0px)+var(--tg-content-safe-area-inset-top,0px))] backdrop-blur-lg">
       <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2">
           <div className="grid h-8 w-8 place-items-center rounded-xl bg-accent text-white">

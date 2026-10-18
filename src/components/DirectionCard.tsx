@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowDown, ArrowRight, ArrowUp, ArrowUpDown, BarChart3, Coins, Pencil, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, BarChart3, Coins, Pencil, Plane, Trash2 } from "lucide-react";
 import type { Airport, Direction } from "../core/types";
 import { countryFlag, formatDate, formatMoney } from "../core/format";
 import { useLocale } from "../contexts/LocaleContext";
@@ -25,8 +25,8 @@ export function DirectionCard({
   onStats: () => void;
 }) {
   const { t } = useLocale();
-  const srcCountry = airports.find((a) => a.code === direction.src)?.country ?? "";
-  const dstCountry = airports.find((a) => a.code === direction.dst)?.country ?? "";
+  const src = airports.find((a) => a.code === direction.src);
+  const dst = airports.find((a) => a.code === direction.dst);
 
   const notifyLabel =
     direction.notify_on_decrease === null
@@ -42,42 +42,60 @@ export function DirectionCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ type: "spring", stiffness: 350, damping: 30 }}
-      className="rounded-xl2 border border-border bg-card/80 p-4 backdrop-blur-sm"
+      className="overflow-hidden rounded-xl2 border border-border bg-card/80 backdrop-blur-sm"
     >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-lg font-semibold text-text">
-          <span>{countryFlag(srcCountry)}</span>
-          <span>{direction.src}</span>
-          <ArrowRight className="h-4 w-4 text-accent" />
-          <span>{countryFlag(dstCountry)}</span>
-          <span>{direction.dst}</span>
+      <div className="p-4 pb-3">
+        <div className="flex items-center gap-3">
+          <Endpoint code={direction.src} airport={src} />
+          <div className="flex flex-1 items-center gap-1.5 text-accent" aria-hidden>
+            <span className="h-px flex-1 border-t border-dashed border-accent/40" />
+            <Plane className="h-4 w-4 rotate-45" />
+            <span className="h-px flex-1 border-t border-dashed border-accent/40" />
+          </div>
+          <Endpoint code={direction.dst} airport={dst} alignEnd />
         </div>
-        <span className="rounded-full bg-accent-soft px-3 py-1 text-sm font-semibold text-accent">
-          ≤ {formatMoney(direction.price, currency)}
-        </span>
+
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted">
+          <span>✈️ {formatDate(direction.travel_date)}</span>
+          <span className="inline-flex items-center gap-1">
+            <NotifyIcon value={direction.notify_on_decrease} /> {notifyLabel}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Coins className="h-3.5 w-3.5" /> {t.dir_threshold}: {formatMoney(direction.threshold, currency)}
+          </span>
+        </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted">
-        <span>✈️ {formatDate(direction.travel_date)}</span>
-        <span className="inline-flex items-center gap-1">
-          <NotifyIcon value={direction.notify_on_decrease} /> {notifyLabel}
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <Coins className="h-3.5 w-3.5" /> {t.dir_threshold}: {formatMoney(direction.threshold, currency)}
-        </span>
+      <div className="relative h-0 border-t border-dashed border-border">
+        <span className="absolute -left-2.5 -top-2.5 h-5 w-5 rounded-full border border-border bg-bg" />
+        <span className="absolute -right-2.5 -top-2.5 h-5 w-5 rounded-full border border-border bg-bg" />
       </div>
 
-      <div className="mt-3 flex gap-1.5 border-t border-border pt-3">
-        <CardAction icon={<BarChart3 className="h-4 w-4" />} label={t.dir_viewStats} onClick={onStats} />
-        <CardAction icon={<Pencil className="h-4 w-4" />} label={t.edit} onClick={onEdit} />
-        <CardAction
-          icon={<Trash2 className="h-4 w-4" />}
-          label={t.remove}
-          onClick={onDelete}
-          danger
-        />
+      <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+        <div className="min-w-0">
+          <div className="text-[11px] text-muted">{t.dir_priceLimit}</div>
+          <div className="text-lg font-semibold tabular-nums text-accent">
+            ≤ {formatMoney(direction.price, currency)}
+          </div>
+        </div>
+        <div className="flex gap-1">
+          <CardAction icon={<BarChart3 className="h-4 w-4" />} label={t.dir_viewStats} onClick={onStats} />
+          <CardAction icon={<Pencil className="h-4 w-4" />} label={t.edit} onClick={onEdit} />
+          <CardAction icon={<Trash2 className="h-4 w-4" />} label={t.remove} onClick={onDelete} danger />
+        </div>
       </div>
     </motion.div>
+  );
+}
+
+function Endpoint({ code, airport, alignEnd }: { code: string; airport?: Airport; alignEnd?: boolean }) {
+  return (
+    <div className={`min-w-0 ${alignEnd ? "text-right" : ""}`}>
+      <div className="text-3xl font-bold tracking-tight text-text">{code}</div>
+      <div className="truncate text-xs text-muted">
+        {countryFlag(airport?.country ?? "")} {airport?.name ?? ""}
+      </div>
+    </div>
   );
 }
 
@@ -95,12 +113,13 @@ function CardAction({
   return (
     <button
       onClick={onClick}
-      className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-medium transition-colors hover:bg-accent-soft ${
-        danger ? "text-danger hover:bg-danger/10" : "text-muted hover:text-text"
+      aria-label={label}
+      title={label}
+      className={`inline-flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${
+        danger ? "text-danger hover:bg-danger/10" : "text-muted hover:bg-accent-soft hover:text-text"
       }`}
     >
       {icon}
-      {label}
     </button>
   );
 }

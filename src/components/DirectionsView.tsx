@@ -75,20 +75,17 @@ export function DirectionsView({ onOpenStats }: { onOpenStats: (src: string, dst
   };
 
   return (
-    <Page
-      title={t.dir_title}
-      action={
-        <Button
-          size="sm"
-          onClick={() => {
-            setEditing(null);
-            setFormOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4" /> {t.add}
-        </Button>
-      }
-    >
+    <Page title={t.dir_title}>
+      <Button
+        full
+        className="mb-4"
+        onClick={() => {
+          setEditing(null);
+          setFormOpen(true);
+        }}
+      >
+        <Plus className="h-4 w-4" /> {t.dir_add}
+      </Button>
       {loading ? (
         <div className="flex justify-center py-16">
           <Spinner className="h-7 w-7" />
@@ -118,8 +115,14 @@ export function DirectionsView({ onOpenStats }: { onOpenStats: (src: string, dst
             </AnimatePresence>
           </div>
           <div className="mt-5">
-            <Button variant="secondary" full loading={running} onClick={onRun}>
-              <Play className="h-4 w-4" /> {t.dir_runNow}
+            <Button
+              variant="ghost"
+              full
+              loading={running}
+              onClick={onRun}
+              className="border border-accent/40 bg-card font-semibold"
+            >
+              <Play className="h-4 w-4 text-accent" /> {t.dir_runNow}
             </Button>
           </div>
         </>

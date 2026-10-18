@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, ExternalLink, Sparkles } from "lucide-react";
+import { ArrowRight, ExternalLink, Sparkles, X } from "lucide-react";
 import { useState } from "react";
 import { getFlightLink, promo } from "../core/api";
 import type { PromoFare } from "../core/types";
@@ -22,6 +22,7 @@ export function PromoView() {
   const { airports } = useAirports();
 
   const [src, setSrc] = useState("");
+  const [dst, setDst] = useState("");
   const [date, setDate] = useState("");
   const [price, setPrice] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,6 +41,8 @@ export function PromoView() {
       setLoading(false);
     }
   };
+
+  const shown = results && dst ? results.filter((f) => f.dst === dst) : results;
 
   const openFare = async (f: PromoFare, key: string) => {
     if (linkingKey) return;
@@ -62,6 +65,21 @@ export function PromoView() {
       <form onSubmit={search} className="flex flex-col gap-4">
         <Field label={t.promo_from}>
           <AirportPicker value={src} onChange={setSrc} airports={airports} placeholder={t.promo_from} />
+        </Field>
+        <Field label={t.promo_to}>
+          <div className="relative">
+            <AirportPicker value={dst} onChange={setDst} airports={airports} placeholder={t.promo_toAny} />
+            {dst && (
+              <button
+                type="button"
+                onClick={() => setDst("")}
+                aria-label={t.promo_toClear}
+                className="absolute right-1.5 top-1.5 grid h-8 w-8 place-items-center rounded-lg bg-surface text-muted hover:text-text"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label={t.promo_date}>
@@ -88,15 +106,15 @@ export function PromoView() {
             <Spinner className="h-7 w-7" />
             <p className="text-sm">{t.promo_searching}</p>
           </div>
-        ) : results === null ? null : results.length === 0 ? (
+        ) : shown === null ? null : shown.length === 0 ? (
           <EmptyState message={t.promo_noResults} />
         ) : (
           <div className="flex flex-col gap-3">
             <p className="px-1 text-xs font-semibold uppercase tracking-wider text-muted">
-              {t.promo_results(results.length)}
+              {t.promo_results(shown.length)}
             </p>
             <p className="px-1 -mt-1 text-xs text-muted">{t.promo_openHint}</p>
-            {results.map((f, i) => {
+            {shown.map((f, i) => {
               const key = `${f.dst}-${f.airline}-${i}`;
               const linking = linkingKey === key;
               return (

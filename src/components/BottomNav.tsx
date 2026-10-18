@@ -17,7 +17,7 @@ export function BottomNav({ tab, onChange }: { tab: Tab; onChange: (tab: Tab) =>
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-bg/85 backdrop-blur-lg">
-      <div className="mx-auto flex max-w-2xl items-stretch justify-around px-2 pb-[env(safe-area-inset-bottom)]">
+      <div className="mx-auto flex max-w-2xl items-stretch justify-around px-2 pb-[max(env(safe-area-inset-bottom),var(--tg-safe-area-inset-bottom,0px))]">
         {items.map(({ key, label, icon: Icon }) => {
           const active = key === tab;
           return (

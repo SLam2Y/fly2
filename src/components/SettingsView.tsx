@@ -18,7 +18,7 @@ import { ScheduleEditor } from "./ScheduleEditor";
 
 export function SettingsView({ onOpenAirports }: { onOpenAirports: () => void }) {
   const { t, locale, setLocale } = useLocale();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, accent, setAccent } = useTheme();
   const { toast } = useToast();
   const { logout } = useAuth();
   const { info, patch } = useChat();
@@ -104,6 +104,17 @@ export function SettingsView({ onOpenAirports }: { onOpenAirports: () => void })
                 segments={[
                   { value: "light", label: t.set_themeLight },
                   { value: "dark", label: t.set_themeDark },
+                ]}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="text-sm font-medium text-text">{t.set_accent}</span>
+              <SegmentedControl<"lavender" | "blue">
+                value={accent}
+                onChange={setAccent}
+                segments={[
+                  { value: "lavender", label: t.set_accentLavender },
+                  { value: "blue", label: t.set_accentBlue },
                 ]}
               />
             </div>

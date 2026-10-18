@@ -69,7 +69,7 @@ export function ConvertView() {
           />
         </Field>
 
-        <div className="flex items-end gap-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-2">
           <Field label={t.convert_from}>
             <Select
               value={from}

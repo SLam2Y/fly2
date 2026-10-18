@@ -1,5 +1,6 @@
 import { AnimatePresence } from "framer-motion";
-import { Suspense, lazy, useEffect, useState } from "react";
+import { Smartphone, X } from "lucide-react";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { AirportsView } from "./components/AirportsView";
 import { BottomNav, type Tab } from "./components/BottomNav";
 import { ConvertView } from "./components/ConvertView";
@@ -16,7 +17,9 @@ const StatsView = lazy(() =>
 import { useAuth } from "./contexts/AuthContext";
 import { ChatProvider } from "./contexts/ChatContext";
 import { useLocale } from "./contexts/LocaleContext";
-import { initTelegram } from "./core/telegram";
+import { useToast } from "./contexts/ToastContext";
+import { addToHomeScreen, checkHomeScreen, getStartParam, initTelegram } from "./core/telegram";
+import { Button } from "./ui/Button";
 import { FullScreenSpinner, Spinner } from "./ui/Spinner";
 
 function AppShell() {
@@ -77,10 +80,24 @@ function AppShell() {
 export default function App() {
   const { status } = useAuth();
   const { t } = useLocale();
+  const { toast } = useToast();
+  const homeScreenPrompted = useRef(false);
+  const [homeScreen, setHomeScreen] = useState<"hidden" | "offer" | "help">("hidden");
 
   useEffect(() => {
     initTelegram();
   }, []);
+
+  useEffect(() => {
+    if (homeScreenPrompted.current) return;
+    if (getStartParam() !== "install") return;
+    homeScreenPrompted.current = true;
+    checkHomeScreen((status) => {
+      if (status === "unsupported") toast(t.homeScreen_unsupported);
+      if (status === "added") toast(t.homeScreen_added);
+      if (status === "missed" || status === "unknown") setHomeScreen("offer");
+    });
+  }, [t, toast]);
 
   if (status === "loading") return <FullScreenSpinner label={t.loading} />;
   if (status === "anonymous") return <Login />;
@@ -88,6 +105,41 @@ export default function App() {
   return (
     <ChatProvider>
       <AppShell />
+      {homeScreen !== "hidden" && (
+        <div className="fixed inset-x-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 mx-auto max-w-md rounded-xl2 border border-border bg-card p-4 shadow-soft">
+          <div className="flex items-start gap-3">
+            <Smartphone className="mt-0.5 h-6 w-6 shrink-0 text-accent" />
+            <p className="flex-1 whitespace-pre-line text-[15px] leading-relaxed text-text">
+              {homeScreen === "help" ? t.homeScreen_help : t.homeScreen_offer}
+            </p>
+            <button
+              type="button"
+              onClick={() => setHomeScreen("hidden")}
+              aria-label={t.close}
+              className="-mr-1 -mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-lg text-muted hover:text-text"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <Button
+            size="lg"
+            full
+            className="mt-4"
+            onClick={() => {
+              setHomeScreen("hidden");
+              addToHomeScreen(
+                () => {
+                  setHomeScreen("hidden");
+                  toast(t.homeScreen_done, "success");
+                },
+                () => setHomeScreen("help")
+              );
+            }}
+          >
+            {homeScreen === "help" ? t.retry : t.add}
+          </Button>
+        </div>
+      )}
     </ChatProvider>
   );
 }

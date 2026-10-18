@@ -61,6 +61,34 @@ body {
   --bg-end: #110f1d;
 }
 
+[data-accent="blue"] {
+  --color-accent: 51 144 236;
+  --color-accent-soft: 227 239 252;
+  --color-bg: 244 247 250;
+  --color-border: 223 229 236;
+  --color-text: 26 34 48;
+  --color-muted: 107 122 140;
+
+  --bg-start: #e6f0fb;
+  --bg-mid: #f1f5fa;
+  --bg-end: #f4f7fa;
+}
+
+.dark[data-accent="blue"] {
+  --color-accent: 91 164 245;
+  --color-accent-soft: 31 51 73;
+  --color-bg: 23 33 43;
+  --color-surface: 30 42 54;
+  --color-card: 35 47 61;
+  --color-border: 47 61 76;
+  --color-text: 233 238 243;
+  --color-muted: 139 155 171;
+
+  --bg-start: #1c2a38;
+  --bg-mid: #19242f;
+  --bg-end: #141c25;
+}
+
 html {
   background-color: var(--bg-end);
 }

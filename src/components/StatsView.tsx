@@ -1,4 +1,4 @@
-import { BarChart3, Check } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   CartesianGrid,
@@ -60,14 +60,14 @@ export function StatsView({ initial }: { initial?: { src: string; dst: string } 
   }, [selected, currency]);
 
   const { data, series } = useMemo(() => {
-    if (!history) return { data: [], series: [] as { key: string; color: string }[] };
-    const seriesKeys: string[] = [];
+    if (!history) return { data: [], series: [] as { key: string; color: string; label: string }[] };
+    const seriesKeys: { key: string; airline: string; travelDate: string }[] = [];
     const byDate = new Map<string, Record<string, number>>();
 
     for (const [airline, byTravelDate] of Object.entries(history)) {
       for (const [travelDate, points] of Object.entries(byTravelDate)) {
         const key = `${airline} · ${formatDate(travelDate)}`;
-        seriesKeys.push(key);
+        seriesKeys.push({ key, airline, travelDate });
         for (const p of points) {
           const d = dayKey(p.dt);
           if (!byDate.has(d)) byDate.set(d, {});
@@ -77,13 +77,18 @@ export function StatsView({ initial }: { initial?: { src: string; dst: string } 
       }
     }
 
+    const multipleAirlines = Object.keys(history).length > 1;
     const rows = [...byDate.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, prices]) => ({ date, ...prices }));
 
     return {
       data: rows,
-      series: seriesKeys.map((key, i) => ({ key, color: PALETTE[i % PALETTE.length] })),
+      series: seriesKeys.map(({ key, airline, travelDate }, i) => ({
+        key,
+        color: PALETTE[i % PALETTE.length],
+        label: multipleAirlines ? `${formatDate(travelDate).slice(0, 5)} ${airline}` : formatDate(travelDate).slice(0, 5),
+      })),
     };
   }, [history]);
 
@@ -185,39 +190,29 @@ export function StatsView({ initial }: { initial?: { src: string; dst: string } 
           </Card>
 
           {series.length > 0 && (
-            <div className="grid grid-cols-1 gap-x-4 gap-y-1 px-1 sm:grid-cols-2">
+            <div className="flex flex-wrap gap-1.5">
               {series.map((s) => {
                 const isHidden = hidden.has(s.key);
-                const isSolo = visibleSeries.length === 1 && visibleSeries[0].key === s.key;
                 return (
-                  <div key={s.key} className="flex items-center gap-2 py-0.5">
-                    <button
-                      type="button"
-                      onClick={() => soloSeries(s.key)}
-                      aria-label={`solo ${s.key}`}
-                      aria-pressed={isSolo}
-                      className={`grid h-4 w-4 shrink-0 place-items-center rounded-[5px] border transition-colors ${
-                        isSolo
-                          ? "border-accent bg-accent text-white"
-                          : "border-border bg-surface text-transparent hover:border-accent"
-                      }`}
-                    >
-                      <Check className="h-3 w-3" strokeWidth={3} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => toggleSeries(s.key)}
-                      className={`inline-flex min-w-0 items-center gap-1.5 text-xs transition-colors ${
-                        isHidden ? "text-muted/50 line-through" : "text-muted hover:text-text"
-                      }`}
-                    >
-                      <span
-                        className="h-2.5 w-2.5 shrink-0 rounded-full"
-                        style={{ background: isHidden ? "rgb(var(--color-border))" : s.color }}
-                      />
-                      <span className="truncate">{s.key}</span>
-                    </button>
-                  </div>
+                  <button
+                    key={s.key}
+                    type="button"
+                    onClick={() => toggleSeries(s.key)}
+                    onDoubleClick={() => soloSeries(s.key)}
+                    aria-pressed={!isHidden}
+                    title={s.key}
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs tabular-nums transition-colors ${
+                      isHidden
+                        ? "border-border text-muted/60"
+                        : "border-border bg-card text-text hover:border-accent"
+                    }`}
+                  >
+                    <span
+                      className="h-2 w-2 shrink-0 rounded-full"
+                      style={{ background: isHidden ? "rgb(var(--color-border))" : s.color }}
+                    />
+                    {s.label}
+                  </button>
                 );
               })}
             </div>
